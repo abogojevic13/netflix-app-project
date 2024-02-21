@@ -1,0 +1,11 @@
+---
+# tasks file for sonarcube
+- name: Start docker container for sonarcube
+  docker_container:
+    name: sonarcube
+    image: "sonarqube:lts-community"
+    state: started
+    restart_policy: always
+    detach: yes
+    restart: yes
+    ports: 9000:9000

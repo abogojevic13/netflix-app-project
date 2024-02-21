@@ -1,0 +1,52 @@
+---
+# tasks file for node-exp
+- name: Create node-exporter system group
+  ansible.builtin.group:
+    name: node-exporter
+    system: true
+    state: present
+
+- name: Create node-exporter system user
+  ansible.builtin.user:
+    name: node-exporter
+    system: true
+    shell: "/bin/false"
+    group: node-exporter
+    createhome: false
+
+- name: Create /etc/node-exporter
+  file:
+    path: /etc/node-exporter
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+
+- name: create systemd service unit
+  template:
+    src: node-exporter.service
+    dest: /etc/node-exporter/node-exporter.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Run node-exporter
+  docker_container:
+    name: node-exporter
+    image: "quay.io/prometheus/node-exporter:latest"
+    state: started
+    restart_policy: always
+    detach: yes
+    restart: yes
+    ports: 9100:9100
+    volumes:
+      - "/etc/node-exporter/:/etc/systemd/system/"
+
+- name: "Check docker status"
+  shell: |
+    docker ps | grep node-exporter
+  register: file_content
+
+- name: "Print the file content to a console"
+  debug:
+    msg: "{{ file_content.stdout }}"

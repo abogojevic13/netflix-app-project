@@ -1,0 +1,27 @@
+---
+- hosts: main
+  become: yes
+  roles:
+    - jenkins
+    - sonarqube
+    - trivy
+    - kubectl
+  vars_files:
+    - vars/main.yml
+
+- hosts: monitoring
+  become: yes
+  roles:
+    - prometheus
+    - node-exporter
+    - grafana
+  vars_files:
+
+- hosts: k8s
+  become: yes
+  roles:
+    - node-exporter
+    - kubectl-setup
+  vars_files:
+    - vars/main.yml
+

@@ -1,0 +1,17 @@
+---
+home_folder: HOMEFOLDER
+
+jenkins:
+  user: admin
+  pass: admin
+  url: jenkinsIP
+
+kubectl_version_url: "https://storage.googleapis.com/kubernetes-release/release/stable.txt"
+
+_kubectl_validate_certs:
+  default: yes
+  Debian: no
+
+kubectl:
+  url: "https://storage.googleapis.com/kubernetes-release/release/{{ lookup('url', kubectl_version_url) }}/bin/linux/amd64/kubectl"
+  validate_certs: "{{ _kubectl_validate_certs[ansible_os_family] | default(_kubectl_validate_certs['default']) }}"

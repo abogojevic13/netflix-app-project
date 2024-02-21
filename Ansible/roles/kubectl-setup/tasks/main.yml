@@ -1,0 +1,13 @@
+---
+# tasks file for kubectl-setup
+
+- name: Copy script to server
+  ansible.builtin.copy:
+    src: kubectl-script.sh
+    dest: '{{ home_folder }}/kubectl-script.sh'
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Run a script 
+  ansible.builtin.shell: sh '{{ home_folder }}/kubectl-script.sh'

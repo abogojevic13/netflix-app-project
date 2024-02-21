@@ -15,7 +15,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git branch: 'master', url: 'https://github.com/abogojevic13/netflix-app-project.git'
+                git branch: 'main', url: 'https://github.com/abogojevic13/netflix-app-project.git'
             }
         }
         stage("Sonarqube Analysis"){
@@ -50,30 +50,20 @@ pipeline{
                 sh "trivy fs . > trivyfs.txt"
             }
         }
-        stage("Docker Image Build"){
-            steps{
+        stage('Docker Build & push') {
+            steps {
                 script{
-                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
-                       sh "docker system prune -f"
-                       sh "docker container prune -f"
-                       sh "docker build --build-arg TMDB_V3_API_KEY=8b174e589e2f03f9fd8123907bd7800c -t netflix ."
+                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){
+                        sh "docker build --build-arg TMDB_V3_API_KEY=YOURTOKEN -t netflix ."
+                        sh "docker tag netflix DOCKERUSERNAME/netflix:latest"
+                        sh "docker push DOCKERUSERNAME/netflix:latest"
                     }
                 }
             }
         }
-        stage("Docker Image Pushing"){
-            steps{
-                script{
-                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
-                       sh "docker tag netflix avian19/netflix:latest "
-                       sh "docker push avian19/netflix:latest "
-                    }
-                }
-            }
-        }
-        stage("TRIVY Image Scan"){
-            steps{
-                sh "trivy image avian19/netflix:latest > trivyimage.txt" 
+        stage('TRIVY FS SCAN Docker Image') {
+            steps {
+                sh "trivy image DOCKERUSERNAME/netflix:latest > trivydockerimg.txt"
             }
         }
         stage('Deploy to Kubernetes'){
@@ -89,17 +79,6 @@ pipeline{
                     }
                 }
             }
-        }
-    }
-    post {
-     always {
-        emailext attachLog: true,
-            subject: "'${currentBuild.result}'",
-            body: "Project: ${env.JOB_NAME}<br/>" +
-                "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                "URL: ${env.BUILD_URL}<br/>",
-            to: 'aman07pathak@gmail.com',
-            attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
 }

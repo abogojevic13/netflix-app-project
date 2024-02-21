@@ -1,0 +1,8 @@
+---
+# tasks file for kubectl
+- name: Install kubectl
+  ansible.builtin.get_url:
+    url: "{{ kubectl.url }}"
+    dest: /usr/bin/kubectl
+    mode: 0755
+    validate_certs: "{{ kubectl.validate_certs }}"

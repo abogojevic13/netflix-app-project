@@ -1,0 +1,74 @@
+---
+# tasks file for jenkins
+- name: download jenkins key
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    dest: /usr/share/keyrings/jenkins-keyring.asc
+
+- name: Add Jenkins repo
+  ansible.builtin.apt_repository:
+    repo: deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+    state: present
+    filename: jenkins
+
+- name: Install fontconfig
+  shell: apt install fontconfig -y    
+
+- name: Install java
+  shell: apt install fontconfig openjdk-17-jre -y  
+
+- name: Install the Jenkins
+  ansible.builtin.apt:
+    name: jenkins
+    state: present  
+
+- name: Make sure a service unit is running
+  ansible.builtin.systemd:
+    state: started
+    name: jenkins
+    enabled: yes
+
+- name: "Read a file content"
+  shell: |
+    cat /var/lib/jenkins/secrets/initialAdminPassword
+  register: jenkinskey
+
+- name: "Print the file content to a console"
+  debug:
+    msg: "{{ jenkinskey.stdout }}"
+
+- name: Add the user 'jenkins' to docker group
+  ansible.builtin.user:
+    name: jenkins
+    groups: jenkins, docker
+    append: yes
+
+- name: Install plugin
+  community.general.jenkins_plugin:
+    name: "{{ item }}"
+    timeout: 90
+    url_username: '{{ jenkins.user }}'
+    url_password: '{{ jenkins.pass }}'
+    url: '{{ jenkins.url }}'
+  with_items: 
+    - prometheus
+    - emailext-template
+    - adoptopenjdk
+    - sonar
+    - nodejs
+    - dependency-check-jenkins-plugin
+    - docker-plugin
+    - docker-commons
+    - docker-workflow
+    - docker-java-api
+    - docker-build-step
+    - kubernetes
+    - kubernetes-credentials
+    - kubernetes-client-api
+    - kubernetes-cli
+    - kubernetes-credentials-provider
+
+- name: Restart service jenkins
+  ansible.builtin.systemd_service:
+    name: jenkins.service
+    state: restarted

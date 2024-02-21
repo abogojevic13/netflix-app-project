@@ -1,0 +1,62 @@
+---
+# tasks file for prometheus
+- name: Create prometheus system group
+  ansible.builtin.group:
+    name: prometheus
+    system: true
+    state: present
+
+- name: Create prometheus system user
+  ansible.builtin.user:
+    name: prometheus
+    system: true
+    shell: "/bin/false"
+    group: prometheus
+    createhome: false
+
+- name: Create /etc/prometheus
+  file:
+    path: /etc/prometheus
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+
+- name: create systemd service unit
+  template:
+    src: prometheus.service
+    dest: /etc/prometheus/prometheus.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: create prometheus.yml unit
+  template:
+    src: prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Run prometheus
+  docker_container:
+    name: prometheus
+    image: "prom/prometheus:latest"
+    state: started
+    restart_policy: always
+    detach: yes
+    restart: yes
+    ports: 9090:9090
+    volumes:
+      - "/etc/prometheus:/etc/prometheus"
+      - "/etc/prometheus/:/etc/systemd/system/"
+
+- name: "Check docker status"
+  shell: |
+    docker ps | grep prometheus
+  register: file_content
+
+- name: "Print the file content to a console"
+  debug:
+    msg: "{{ file_content.stdout }}"
+

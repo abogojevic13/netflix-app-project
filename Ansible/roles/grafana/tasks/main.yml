@@ -1,0 +1,20 @@
+---
+# tasks file for grafana
+- name: Run grafana
+  docker_container:
+    name: grafana 
+    image: "grafana/grafana:latest"
+    state: started
+    restart_policy: always
+    detach: yes
+    restart: yes
+    ports: 3000:3000
+
+- name: "Check docker status"
+  shell: |
+    docker ps | grep grafana
+  register: file_content
+
+- name: "Print the file content to a console"
+  debug:
+    msg: "{{ file_content.stdout }}"

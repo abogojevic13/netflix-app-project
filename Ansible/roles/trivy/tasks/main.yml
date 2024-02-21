@@ -1,0 +1,34 @@
+---
+# tasks file for trivy
+- name: Update&Upgrade
+  ansible.builtin.apt:
+    name: aptitude
+    state: present
+    update_cache: true
+
+- name: Check list
+  ansible.builtin.apt:
+    name: 
+      - wget
+      - apt-transport-https
+      - gnupg
+    state: present
+    update_cache: true
+  
+- name: Add gpg signing key for trivy_app
+  ansible.builtin.apt_key:
+    url: https://aquasecurity.github.io/trivy-repo/deb/public.key
+    state: present
+
+- name:  Adding repository trivy_repo_debian
+  ansible.builtin.apt_repository:
+    repo: "deb https://aquasecurity.github.io/trivy-repo/deb jammy main"
+    state: present
+    filename: "trivy"
+    update_cache: yes
+
+- name: Install trivy
+  ansible.builtin.apt:
+    name: trivy
+    state: present
+    update_cache: true

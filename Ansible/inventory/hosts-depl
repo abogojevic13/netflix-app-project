@@ -1,0 +1,9 @@
+[main]
+main-srv ansible_host=mainIP ansible_port=22
+
+[monitoring]
+monitoring-srv ansible_host=moniIP ansible_port=22
+
+[k8s]
+k8s-master ansible_host=masterIP ansible_port=22
+k8s-worker ansible_host=nodeIP ansible_port=22
